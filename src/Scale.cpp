@@ -4,6 +4,13 @@ Scale::Scale(int doutPin, int sckPin)
 {
     _doutPin=doutPin;
     _sckPin=sckPin;
+
+    medBuf[MED_N] = {0};
+    medIndex = 0;
+    medCount = 0;
+    emaInit = false;
+    gEMA = 0.0f;
+    lastShown = 0;
 }
 
 Scale::~Scale()

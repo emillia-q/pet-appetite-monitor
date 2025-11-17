@@ -1,5 +1,7 @@
 #include"Scale.h"
 #include"Display.h"
+#include"Button.h"
+#include"Diode.h"
 
 //pin declarations and new objects
 //hx711
@@ -17,28 +19,15 @@
 //button and diode
 #define LED_PIN 5
 #define BUTTON_PIN 23
-#define LONG_PRESS_TIME 3000
 
-//new objects
+//objects
 Scale scale(LOADCELL_DOUT_PIN,LOADCELL_SCK_PIN);
 Display display(OLED_SDA,OLED_SCL,SCREEN_WIDTH,SCREEN_HEIGHT,OLED_RESET,SCREEN_ADDRESS);
-
-bool buttonState=HIGH;
-bool lastButtonState=HIGH;
-unsigned long pressStartMonitoringTime=0;
-bool actionExecuted=false;
-
-//function declarations hx711
-void userTaring();
-void startMonitoring();
+Button button(BUTTON_PIN);
+Diode diode(LED_PIN);
 
 void setup() {
   Serial.begin(115200);
-
-  //button
-  pinMode(BUTTON_PIN,INPUT_PULLUP);
-  //diode
-  pinMode(LED_PIN,OUTPUT);
 
   //display
   if(!display.begin())
@@ -49,49 +38,23 @@ void setup() {
 }
 
 void loop() {
-  //button
-  buttonState=digitalRead(BUTTON_PIN);
-  
-  if(lastButtonState==HIGH&&buttonState==LOW){
-    pressStartMonitoringTime=millis();
-    actionExecuted=false;
-  }
+  //button logic
+  button.buttonStateRead();
+  button.measurePressTime();
 
-  if(buttonState==LOW && !actionExecuted){
-    if(millis()-pressStartMonitoringTime>=LONG_PRESS_TIME){
-      startMonitoring();
-      actionExecuted=true;
-    }
+  if(button.buttonHold()){
+    diode.startMonitoringMsg();
   }
-  
-  if(lastButtonState==LOW && buttonState==HIGH && !actionExecuted){
-    userTaring();
+  if(button.buttonClick()){
+    diode.tareMsg();
     scale.tare();
-    actionExecuted=true;
   }
 
-  lastButtonState=buttonState;
+  button.changeLastState();
 
   //display weight
   long weightToDisplay=scale.getStableWeight();
   display.displayWeight(weightToDisplay);
 
   delay(5);
-}
-
-//function definitions
-
-void userTaring(){
-  digitalWrite(LED_PIN,HIGH);
-  delay(1000);
-  digitalWrite(LED_PIN,LOW);
-}
-
-void startMonitoring(){
-    for(int i=0;i<3;i++){
-      digitalWrite(LED_PIN,HIGH);
-      delay(500); 
-      digitalWrite(LED_PIN,LOW);
-      delay(500);
-    }
 }

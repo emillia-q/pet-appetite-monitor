@@ -7,6 +7,7 @@ class Display{
 public:
     static constexpr unsigned long REFRESH_INTERVAL = 100; // ms
 
+    //constructors & destructors
     Display(int sdaPin,int sclPin,int width,int height,int resetPin,uint8_t address);
     ~Display();
 
@@ -14,6 +15,6 @@ public:
     void displayWeight(long weight);
 private:
     Adafruit_SSD1306 display;
-    unsigned long lastOled=0;
+    unsigned long lastOled;
     uint8_t _address;
 };

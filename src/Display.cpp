@@ -3,6 +3,7 @@
 Display::Display(int sdaPin, int sclPin, int width, int height, int resetPin, uint8_t address) : display(width,height,&Wire,resetPin)
 {
     _address=address;
+    lastOled=0;
     Wire.begin(sdaPin,sclPin);
 }
 

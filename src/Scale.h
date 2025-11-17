@@ -1,5 +1,4 @@
 #pragma once
-#include <Arduino.h>
 #include<HX711.h>
 
 class Scale{
@@ -20,12 +19,12 @@ private:
     HX711 scale;
     int _doutPin;
     int _sckPin;
-    float medBuf[MED_N] = {0};
-    int medIndex = 0;
-    int medCount = 0;
-    bool emaInit = false;
-    float gEMA = 0.0f; //current value after EMA filter
-    long lastShown = 0;
+    float medBuf[MED_N];
+    int medIndex;
+    int medCount;
+    bool emaInit;
+    float gEMA; //current value after EMA filter
+    long lastShown;
 
     //helper methods
     float medianFromBuffer(const float* buf,int n);
