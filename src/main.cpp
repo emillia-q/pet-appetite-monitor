@@ -2,6 +2,11 @@
 #include"Display.h"
 #include"Button.h"
 #include"Diode.h"
+#include"ScaleWebServer.h"
+
+//wifi config
+const char*ssid="net name";
+const char*password="passwd"; //TODO: createw new file
 
 //pin declarations and new objects
 //hx711
@@ -22,6 +27,7 @@
 
 //objects
 Scale scale(LOADCELL_DOUT_PIN,LOADCELL_SCK_PIN);
+ScaleWebServer webServer(scale);
 Display display(OLED_SDA,OLED_SCL,SCREEN_WIDTH,SCREEN_HEIGHT,OLED_RESET,SCREEN_ADDRESS);
 Button button(BUTTON_PIN);
 Diode diode(LED_PIN);
@@ -35,6 +41,18 @@ void setup() {
 
   //hx711
   scale.begin();
+
+  //connect with wifi
+  WiFi.begin(ssid,password);
+  while(WiFi.status()!=WL_CONNECTED){
+    delay(500);
+    Serial.print(".");
+  }
+  Serial.print("Connected with Wi-Fi. IP: ");
+  Serial.println(WiFi.localIP()); //to save!
+
+  //start the server
+  webServer.begin();
 }
 
 void loop() {
