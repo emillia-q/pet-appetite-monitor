@@ -34,7 +34,7 @@ void setup() {
     for(;;);
 
   //hx711
-  scale.begin(200.f);
+  scale.begin();
 }
 
 void loop() {

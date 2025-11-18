@@ -1,5 +1,6 @@
 #pragma once
 #include<HX711.h>
+#include<Preferences.h>
 
 class Scale{
 public:
@@ -12,7 +13,7 @@ public:
     Scale(int doutPin, int sckPin);
     ~Scale();
 
-    void begin(float calibrationMass); //probably to delete it when calibrated scale will be in teh flash
+    void begin(); //probably to delete it when calibrated scale will be in teh flash
     long getStableWeight();
     void tare();
 private:
@@ -26,7 +27,15 @@ private:
     float gEMA; //current value after EMA filter
     long lastShown;
 
+    //flash for calibration factor
+    Preferences pref;
+    const char* PREF_NS="scale";
+    const char* PREF_CAL_KEY="cal";
+    float scale_factor;
+
     //helper methods
     float medianFromBuffer(const float* buf,int n);
     void applyStabilization(float gRaw);
+    //calculates and saves the calibration factor (one-time use)
+    void calibration(float calibrationMass); 
 };
