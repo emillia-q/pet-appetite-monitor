@@ -3,10 +3,11 @@
 #include"Button.h"
 #include"Diode.h"
 #include"ScaleWebServer.h"
+#include"secrets.h"
 
 //wifi config
-const char*ssid="net name";
-const char*password="passwd"; //TODO: createw new file
+const char*SSID=SECRET_SSID;
+const char*PASSWORD=SECRET_PASSWORD;
 
 //pin declarations and new objects
 //hx711
@@ -43,7 +44,7 @@ void setup() {
   scale.begin();
 
   //connect with wifi
-  WiFi.begin(ssid,password);
+  WiFi.begin(SSID,PASSWORD);
   while(WiFi.status()!=WL_CONNECTED){
     delay(500);
     Serial.print(".");

@@ -4,7 +4,7 @@ void ScaleWebServer::getWeight(AsyncWebServerRequest *request)
 {
     float currentWeight=scale.getStableWeight();
     
-    StaticJsonDocument<200>doc; //probably 200bytes is more than needed
+    JsonDocument doc; 
     doc["weight"]=currentWeight;
     doc["unit"]="g";
 
@@ -26,8 +26,10 @@ ScaleWebServer::~ScaleWebServer()
 void ScaleWebServer::begin()
 {
     //endpoint GET weight
-    server.on("/weight",HTTP_GET,std::bind(&ScaleWebServer::getWeight,this,std::placeholders::_1)); //pointer to a specific object
-    //TODO: fix using lambda??
+    server.on("/weight",HTTP_GET,[this](AsyncWebServerRequest*request){
+        this->getWeight(request);
+    }); //pointer to a specific object
+
     server.begin();
     Serial.println("Server works");
 }
