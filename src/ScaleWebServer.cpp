@@ -28,7 +28,7 @@ void ScaleWebServer::begin()
     //endpoint GET weight
     server.on("/weight",HTTP_GET,[this](AsyncWebServerRequest*request){
         this->getWeight(request);
-    }); //pointer to a specific object
+    }); //use lambda to correctly bind the member function and resolve the 'ambiguous call' error
 
     server.begin();
     Serial.println("Server works");
