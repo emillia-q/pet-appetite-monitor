@@ -11,8 +11,8 @@ const char*PASSWORD=SECRET_PASSWORD;
 
 //pin declarations and new objects
 //hx711
-#define LOADCELL_SCK_PIN 18
-#define LOADCELL_DOUT_PIN 19
+#define LOADCELL_DOUT_PIN 26
+#define LOADCELL_SCK_PIN 27
 
 //oled
 #define OLED_SDA 21
@@ -23,8 +23,8 @@ const char*PASSWORD=SECRET_PASSWORD;
 #define SCREEN_ADDRESS 0X3C
 
 //button and diode
-#define LED_PIN 5
-#define BUTTON_PIN 23
+#define LED_PIN 13
+#define BUTTON_PIN 14
 
 //objects
 Scale scale(LOADCELL_DOUT_PIN,LOADCELL_SCK_PIN);

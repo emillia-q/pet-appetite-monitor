@@ -15,7 +15,7 @@ void ScaleWebServer::getWeight(AsyncWebServerRequest *request)
     request->send(200,"application/json",jsonResponse);
 }
 
-ScaleWebServer::ScaleWebServer(Scale &scale) : server(8080),scale(scale)
+ScaleWebServer::ScaleWebServer(Scale &scale) : server(80),scale(scale)
 {
 }
 
