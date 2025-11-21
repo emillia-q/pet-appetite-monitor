@@ -4,6 +4,7 @@
 #include"Diode.h"
 #include"ScaleWebServer.h"
 #include"secrets.h"
+#include"SDLogger.h"
 
 //wifi config
 const char*SSID=SECRET_SSID;
@@ -26,16 +27,25 @@ const char*PASSWORD=SECRET_PASSWORD;
 #define LED_PIN 13
 #define BUTTON_PIN 14
 
+//SD card reader
+#define SD_CS 15
+#define SD_SCK 18
+#define SD_MISO 19
+#define SD_MOSI 23
+
 //objects
 Scale scale(LOADCELL_DOUT_PIN,LOADCELL_SCK_PIN);
 ScaleWebServer webServer(scale);
 Display display(OLED_SDA,OLED_SCL,SCREEN_WIDTH,SCREEN_HEIGHT,OLED_RESET,SCREEN_ADDRESS);
 Button button(BUTTON_PIN);
 Diode diode(LED_PIN);
+const char* LOG_FILE_NAME = "/data_log.txt";
+SDLogger sd(SD_CS,SD_SCK,SD_MOSI,SD_MISO,LOG_FILE_NAME);
 
 void setup() {
   Serial.begin(115200);
 
+  sd.begin();
   //display
   if(!display.begin())
     for(;;);
@@ -75,5 +85,7 @@ void loop() {
   long weightToDisplay=scale.getStableWeight();
   display.displayWeight(weightToDisplay);
 
+  //test
+  //sd.log("test pliku");
   delay(5);
 }
