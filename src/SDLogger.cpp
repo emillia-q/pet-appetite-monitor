@@ -40,7 +40,7 @@ bool SDLogger::begin()
     //if file is new add the header
     File file=SD.open(FILE_NAME,FILE_READ);
     if(!file)
-        log("DATE;TIME;WEIGHT_G");
+        log("DATE(YYYY.MM.DD);TIME(HH:MM);WEIGHT(g)");
 
     file.close();
 

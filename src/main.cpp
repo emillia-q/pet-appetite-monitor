@@ -5,6 +5,7 @@
 #include"ScaleWebServer.h"
 #include"secrets.h"
 #include"SDLogger.h"
+#include"RTCManager.h"
 
 //wifi config
 const char*SSID=SECRET_SSID;
@@ -41,6 +42,7 @@ Button button(BUTTON_PIN);
 Diode diode(LED_PIN);
 const char* LOG_FILE_NAME = "/data_log.txt";
 SDLogger sd(SD_CS,SD_SCK,SD_MOSI,SD_MISO,LOG_FILE_NAME);
+RTCManager rtc;
 
 void setup() {
   Serial.begin(115200);
@@ -62,6 +64,8 @@ void setup() {
   Serial.print("Connected with Wi-Fi. IP: ");
   Serial.println(WiFi.localIP()); //to save!
 
+  //sd.log(rtc.getDate());//test-works
+  rtc.getTime();
   //start the server
   webServer.begin();
 }

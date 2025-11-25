@@ -4,7 +4,7 @@ Scale::Scale(int doutPin, int sckPin)
 {
   _doutPin=doutPin;
   _sckPin=sckPin;
-  scale.begin(_doutPin,_sckPin);
+  scale.begin(_doutPin,_sckPin); //TODO: move to begin func?
 
   medBuf[MED_N] = {0};
   medIndex = 0;
