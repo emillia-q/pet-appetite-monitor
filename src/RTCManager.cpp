@@ -59,6 +59,5 @@ String RTCManager::getTime()
 
     char buff[6];
     sprintf(buff,"%02d:%02d",getHour(),getMinute());
-    Serial.println(buff);
     return buff;
 }

@@ -10,7 +10,7 @@ class SDLogger{
 public:
     SDLogger(int csPin,int sckPin,int mosiPin,int misoPin,const char* fileName);
     ~SDLogger();
-    void log(const String& dataLine); //TODO: change it to private, for now its for test
+    void log(const String &date,const String &time,const String &weight); //TODO: change it to private, for now its for test
     bool begin();
     //TODO: void recordWeigthDrop(); 
 };

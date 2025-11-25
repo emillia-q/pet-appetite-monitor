@@ -64,8 +64,7 @@ void setup() {
   Serial.print("Connected with Wi-Fi. IP: ");
   Serial.println(WiFi.localIP()); //to save!
 
-  //sd.log(rtc.getDate());//test-works
-  rtc.getTime();
+  sd.log(rtc.getDate(),rtc.getTime(),"0g"); //test
   //start the server
   webServer.begin();
 }
