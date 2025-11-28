@@ -48,7 +48,6 @@ bool SDLogger::begin()
             return false;
         }
         file.println("DATE(YYYY.MM.DD);TIME(HH:MM);WEIGHT(g)");
-        file.close();
     }
 
     file.close();

@@ -44,6 +44,10 @@ const char* LOG_FILE_NAME = "/data_log.txt";
 SDLogger sd(SD_CS,SD_SCK,SD_MOSI,SD_MISO,LOG_FILE_NAME);
 RTCManager rtc;
 
+//test
+bool hold;
+unsigned long pressStartMonitoringTime;
+
 void setup() {
   Serial.begin(115200);
 
@@ -64,9 +68,11 @@ void setup() {
   Serial.print("Connected with Wi-Fi. IP: ");
   Serial.println(WiFi.localIP()); //to save!
 
-  sd.log(rtc.getDate(),rtc.getTime(),"0g"); //test
   //start the server
   webServer.begin();
+
+  hold=false;
+  pressStartMonitoringTime=0;
 }
 
 void loop() {
@@ -76,6 +82,9 @@ void loop() {
 
   if(button.buttonHold()){
     diode.startMonitoringMsg();
+    scale.setStartWeight();
+    hold=true;
+    pressStartMonitoringTime=millis();
   }
   if(button.buttonClick()){
     diode.tareMsg();
@@ -84,9 +93,25 @@ void loop() {
 
   button.changeLastState();
 
+
   //display weight
   long weightToDisplay=scale.getStableWeight();
   display.displayWeight(weightToDisplay);
+  
+    
+  if(millis()-pressStartMonitoringTime>=Scale::MEASURE_TIME && hold==true){
+    hold=false;
+    pressStartMonitoringTime=0;
+    scale.checkWeightDrop();
+    Serial.println("the time has passed");
+    if(scale.getDidDrop()){
+      scale.setDidDrop(false);
+      String weightToString=String(scale.getWeightDrop());
+      sd.log(rtc.getDate(),rtc.getTime(),weightToString);
+      Serial.println("log success");
+    }
+  }
+  
 
   //test
   //sd.log("test pliku");

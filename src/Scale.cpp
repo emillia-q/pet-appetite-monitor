@@ -12,6 +12,8 @@ Scale::Scale(int doutPin, int sckPin)
   emaInit = false;
   gEMA = 0.0f;
   lastShown = 0;
+  startWeight=0;
+  weightDrop=0;
   scale_factor=0.0f;
 }
 
@@ -54,6 +56,39 @@ long Scale::getStableWeight()
   }
 
   return (lastShown<0) ? 0 : lastShown;
+}
+
+long Scale::getWeightDrop()
+{
+  return weightDrop;
+}
+
+void Scale::setStartWeight()
+{
+  this->startWeight=getStableWeight();
+  Serial.println(startWeight);
+}
+
+bool Scale::getDidDrop()
+{
+    return didDrop;
+}
+
+void Scale::setDidDrop(bool state)
+{
+  didDrop=state;
+}
+
+void Scale::checkWeightDrop()
+{
+  long currentWeight=getStableWeight();
+    if(startWeight<=currentWeight){ //< , for now I use this to see if a cat stepped on the scale
+      return;
+    }
+    else{
+      this->weightDrop=startWeight-currentWeight;
+      this->didDrop=true;
+    }
 }
 
 void Scale::tare()
