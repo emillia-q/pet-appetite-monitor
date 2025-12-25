@@ -13,6 +13,8 @@ public:
 
     bool begin();
     void displayWeight(long weight);
+    void displayMsg(String msg);
+    void displayClr();
 private:
     Adafruit_SSD1306 display;
     unsigned long lastOled;

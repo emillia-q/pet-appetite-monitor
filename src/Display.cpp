@@ -42,3 +42,16 @@ void Display::displayWeight(long weight)
         display.display();
     }
 }
+
+void Display::displayMsg(String msg)
+{
+    display.clearDisplay();
+    display.setCursor(0,0);
+    display.print(msg);
+    display.display();
+}
+
+void Display::displayClr()
+{
+    display.clearDisplay();
+}

@@ -18,6 +18,7 @@ public:
     RTCManager();
     ~RTCManager();
 
+    void config();
     String getDate();
     String getTime();
 };

@@ -51,10 +51,17 @@ unsigned long pressStartMonitoringTime;
 void setup() {
   Serial.begin(115200);
 
-  sd.begin();
   //display
-  if(!display.begin())
-    for(;;);
+  while(!display.begin());
+
+  //sd card
+  int i=0;
+  while(!sd.begin()){
+    if(i>5) //casually after one iteration, the card is initialized correctly
+      display.displayMsg("SD card error.");
+    i++;
+  }
+  display.displayClr();
 
   //hx711
   scale.begin();
@@ -66,8 +73,10 @@ void setup() {
     Serial.print(".");
   }
   Serial.print("Connected with Wi-Fi. IP: ");
-  Serial.println(WiFi.localIP()); //to save!
+  Serial.println(WiFi.localIP()); //to save! maybe just for now
 
+  //rtc configureg only when having wi-fi access
+  rtc.config();
   //start the server
   webServer.begin();
 

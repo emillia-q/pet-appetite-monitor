@@ -36,14 +36,15 @@ RTCManager::~RTCManager()
 {
 }
 
-String RTCManager::getDate()
+void RTCManager::config()
 {
     configTime(gmtOffset_sec,daylightOffset_sec,ntpServer);
-    if(!getLocalTime(&timeinfo)){
+    if(!getLocalTime(&timeinfo))
         Serial.println("Failed to obtain time.");
-        //return;
-    }
+}
 
+String RTCManager::getDate()
+{
     char buff[11];
     sprintf(buff,"%d.%02d.%02d",getYear(),getMonth(),getDay());
     return buff;
@@ -51,12 +52,6 @@ String RTCManager::getDate()
 
 String RTCManager::getTime()
 {
-    configTime(gmtOffset_sec,daylightOffset_sec,ntpServer);
-    if(!getLocalTime(&timeinfo)){
-        Serial.println("Failed to obtain time.");
-        //return;
-    }
-
     char buff[6];
     sprintf(buff,"%02d:%02d",getHour(),getMinute());
     return buff;
