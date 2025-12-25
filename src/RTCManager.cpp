@@ -45,6 +45,7 @@ void RTCManager::config()
 
 String RTCManager::getDate()
 {
+    getLocalTime(&timeinfo);
     char buff[11];
     sprintf(buff,"%d.%02d.%02d",getYear(),getMonth(),getDay());
     return buff;
@@ -52,6 +53,7 @@ String RTCManager::getDate()
 
 String RTCManager::getTime()
 {
+    getLocalTime(&timeinfo);
     char buff[6];
     sprintf(buff,"%02d:%02d",getHour(),getMinute());
     return buff;

@@ -29,7 +29,7 @@ const char*PASSWORD=SECRET_PASSWORD;
 #define BUTTON_PIN 14
 
 //SD card reader
-#define SD_CS 15
+#define SD_CS 5
 #define SD_SCK 18
 #define SD_MISO 19
 #define SD_MOSI 23
@@ -122,7 +122,7 @@ void loop() {
       scale.setDidDrop(false);
       String weight=String(scale.getWeightDrop());
       sd.log(rtc.getDate(),rtc.getTime(),weight);
-      Serial.println("log success");
+      scale.setStartWeight();
     }
     if(scale.getStableWeight()==0)
       isRunning=false;

@@ -54,4 +54,5 @@ void Display::displayMsg(String msg)
 void Display::displayClr()
 {
     display.clearDisplay();
+    display.display();
 }
