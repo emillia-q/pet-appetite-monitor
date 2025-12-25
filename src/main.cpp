@@ -46,6 +46,8 @@ RTCManager rtc;
 
 //test
 bool hold;
+bool tared;
+bool isRunning;
 unsigned long pressStartMonitoringTime;
 
 void setup() {
@@ -81,48 +83,50 @@ void setup() {
   webServer.begin();
 
   hold=false;
+  tared=false;
+  isRunning=false;
   pressStartMonitoringTime=0;
 }
 
 void loop() {
   //button logic
-  button.buttonStateRead();
+  button.buttonStateRead(); //TODO: lock the button read logic when program is running?
   button.measurePressTime();
 
-  if(button.buttonHold()){
+  if(!isRunning && button.buttonHold()){
     diode.startMonitoringMsg();
     scale.setStartWeight();
-    hold=true;
+    isRunning=true;
     pressStartMonitoringTime=millis();
   }
-  if(button.buttonClick()){
+
+  if(!tared && button.buttonClick()){ //!tared condition -> so we or pet won't accidentally click tare when the food is ready to be monitored
     diode.tareMsg();
     scale.tare();
+    tared=true;
   }
 
   button.changeLastState();
 
-
   //display weight
   long weightToDisplay=scale.getStableWeight();
-  display.displayWeight(weightToDisplay);
+  if(!isRunning) //TODO: clear it or do sth else idk
+    display.displayWeight(weightToDisplay);
   
     
-  if(millis()-pressStartMonitoringTime>=Scale::MEASURE_TIME && hold==true){
-    hold=false;
-    pressStartMonitoringTime=0;
+  if(isRunning && millis()-pressStartMonitoringTime>=Scale::MEASURE_TIME){
+    pressStartMonitoringTime=millis();
     scale.checkWeightDrop();
     Serial.println("the time has passed");
     if(scale.getDidDrop()){
       scale.setDidDrop(false);
-      String weightToString=String(scale.getWeightDrop());
-      sd.log(rtc.getDate(),rtc.getTime(),weightToString);
+      String weight=String(scale.getWeightDrop());
+      sd.log(rtc.getDate(),rtc.getTime(),weight);
       Serial.println("log success");
     }
+    if(scale.getStableWeight()==0)
+      isRunning=false;
   }
   
-
-  //test
-  //sd.log("test pliku");
   delay(5);
 }
