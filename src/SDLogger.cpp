@@ -33,7 +33,6 @@ bool SDLogger::begin()
     SPI.begin(_sckPin,_misoPin,_mosiPin,_csPin);
     SPI.setFrequency(2000000);//2MHz
     //initialization
-    delay(200); //to stabilize teh voltage
     if(!SD.begin(_csPin)){
         Serial.println("ERROR: SD card initialization error.");
         return false;

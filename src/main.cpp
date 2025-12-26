@@ -49,6 +49,7 @@ bool hold;
 bool tared;
 bool isRunning;
 unsigned long pressStartMonitoringTime;
+unsigned long toGetWeightTime;
 
 void setup() {
   Serial.begin(115200);
@@ -68,7 +69,7 @@ void setup() {
   //hx711
   scale.begin();
 
-  //connect with wifi
+  //connect with wifi -> at start it is a must have
   WiFi.begin(SSID,PASSWORD);
   while(WiFi.status()!=WL_CONNECTED){
     delay(500);
@@ -79,6 +80,8 @@ void setup() {
 
   //rtc configureg only when having wi-fi access
   rtc.config();
+
+  //WiFi.disconnect();
   //start the server
   webServer.begin();
 
@@ -86,46 +89,54 @@ void setup() {
   tared=false;
   isRunning=false;
   pressStartMonitoringTime=0;
+  toGetWeightTime=3000;
 }
 
 void loop() {
   //button logic
-  button.buttonStateRead(); //TODO: lock the button read logic when program is running?
-  button.measurePressTime();
-
-  if(!isRunning && button.buttonHold()){
-    diode.startMonitoringMsg();
-    scale.setStartWeight();
-    isRunning=true;
-    pressStartMonitoringTime=millis();
-  }
-
-  if(!tared && button.buttonClick()){ //!tared condition -> so we or pet won't accidentally click tare when the food is ready to be monitored
-    diode.tareMsg();
-    scale.tare();
-    tared=true;
-  }
-
-  button.changeLastState();
-
-  //display weight
-  long weightToDisplay=scale.getStableWeight();
-  if(!isRunning) //TODO: clear it or do sth else idk
+  if(!isRunning){
+    //display weight
+    long weightToDisplay=scale.getStableWeight();
     display.displayWeight(weightToDisplay);
-  
+
+    //read button pin
+    button.buttonStateRead();
+    button.measurePressTime();
     
-  if(isRunning && millis()-pressStartMonitoringTime>=Scale::MEASURE_TIME){
-    pressStartMonitoringTime=millis();
-    scale.checkWeightDrop();
-    Serial.println("the time has passed");
-    if(scale.getDidDrop()){
-      scale.setDidDrop(false);
-      String weight=String(scale.getWeightDrop());
-      sd.log(rtc.getDate(),rtc.getTime(),weight);
+    if(button.buttonHold()){
+      diode.startMonitoringMsg();
       scale.setStartWeight();
+      isRunning=true;
+      pressStartMonitoringTime=millis();
+      display.displayClr();
     }
-    if(scale.getStableWeight()==0)
-      isRunning=false;
+
+    if(button.buttonClick()){ //so we or pet won't accidentally click tare when the food is ready to be monitored
+      diode.tareMsg();
+      scale.tare();
+      //tared=true;
+    }
+
+    button.changeLastState(); 
+  }
+
+  //get weight 3s before SD log so it will stabilize
+  if(isRunning && millis()-pressStartMonitoringTime+toGetWeightTime>=Scale::MEASURE_TIME){
+    long measuredWeight=scale.getStableWeight();  
+    Serial.println(measuredWeight);
+    if(millis()-pressStartMonitoringTime>=Scale::MEASURE_TIME){ //if the time has passed, we check if the weight drop occured
+      pressStartMonitoringTime=millis(); //to start measuring time to the next log
+      scale.checkWeightDrop();
+      Serial.println("the time has passed");
+      if(scale.getDidDrop()){ //if the weight had dropped, we log the data
+        scale.setDidDrop(false);
+        String weight=String(scale.getWeightDrop());
+        sd.log(rtc.getDate(),rtc.getTime(),weight);
+        scale.setStartWeight();
+      }
+      if(measuredWeight==0) //if the bowl is empty, the program stops running and is waiting for another bowl fill and start of the program
+        isRunning=false;
+    }
   }
   
   delay(5);
