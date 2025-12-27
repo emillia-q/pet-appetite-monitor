@@ -48,7 +48,7 @@ bool SDLogger::begin()
             Serial.println(".");
             return false;
         }
-        file.println("DATE(YYYY.MM.DD);TIME(HH:MM);WEIGHT(g)");
+        file.println("DATE(YYYY-MM-DD);TIME(HH:MM);WEIGHT(g)");
         file.close();
     }
 

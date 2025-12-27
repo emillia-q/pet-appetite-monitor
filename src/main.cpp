@@ -6,10 +6,15 @@
 #include"secrets.h"
 #include"SDLogger.h"
 #include"RTCManager.h"
+#include"FirebaseLogger.h"
 
 //wifi config
 const char*SSID=SECRET_SSID;
 const char*PASSWORD=SECRET_PASSWORD;
+
+//firebase
+const char*FB_URL=FBASE_URL;
+const char*FB_SECRET=FBASE_SECRET;
 
 //pin declarations and new objects
 //hx711
@@ -43,6 +48,7 @@ Diode diode(LED_PIN);
 const char* LOG_FILE_NAME = "/data_log.txt";
 SDLogger sd(SD_CS,SD_SCK,SD_MOSI,SD_MISO,LOG_FILE_NAME);
 RTCManager rtc;
+FirebaseLogger firebase(FB_URL,FB_SECRET);
 
 //test
 bool hold;
@@ -80,6 +86,9 @@ void setup() {
 
   //rtc configureg only when having wi-fi access
   rtc.config();
+
+  //fb
+  firebase.begin();
 
   //WiFi.disconnect();
   //start the server
@@ -131,7 +140,13 @@ void loop() {
       if(scale.getDidDrop()){ //if the weight had dropped, we log the data
         scale.setDidDrop(false);
         String weight=String(scale.getWeightDrop());
-        sd.log(rtc.getDate(),rtc.getTime(),weight);
+        String currentDate=rtc.getDate();
+        String currentTime=rtc.getTime();
+        //sd log
+        sd.log(currentDate,currentTime,weight);
+        //firebase
+        firebase.logMeal(currentDate,currentTime,weight);
+        
         scale.setStartWeight();
       }
       if(measuredWeight==0) //if the bowl is empty, the program stops running and is waiting for another bowl fill and start of the program

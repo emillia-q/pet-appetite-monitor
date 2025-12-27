@@ -47,7 +47,7 @@ String RTCManager::getDate()
 {
     getLocalTime(&timeinfo);
     char buff[11];
-    sprintf(buff,"%d.%02d.%02d",getYear(),getMonth(),getDay());
+    sprintf(buff,"%d-%02d-%02d",getYear(),getMonth(),getDay());
     return buff;
 }
 
