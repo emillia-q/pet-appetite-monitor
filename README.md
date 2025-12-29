@@ -2,12 +2,14 @@
 ## A smart scale for precise tracking of pet food intake.
 
 ## 🐈‍⬛ Project Origins
+<img src="assets/zefir.jpg" align="left" width="150" style="margin-left: 20px;">
+
 This handsome gentleman is **Zefir**.
-//TODO: add the photo of cat
 We've known each other for 15 years, which is more than half of my life. 
-Recently, he was unfortunately diagnosed with intestinal lymphoma. 
+Recently, he was diagnosed with intestinal lymphoma. 
 A crucial part of his care involves monitoring his food intake, both daily and weekly, to track his appetite and overall well-being.
-This need became an inspiration for this project and unfortunately the only way I can help him. 
+This need became an inspiration for this project and unfortunately the only way I can help him.
+<br clear="left"/>
 
 ## 🛠 How it works
 The primary purpose is to monitor and record the time and quantity of a pet's meals, providing data to help manage their condition. The data is stored locally on a MicroSD card and also sent to **Firebase**, from where it is retrieved by a mobile app (currently in development). 
