@@ -38,6 +38,7 @@ SDLogger::SDLogger(int csPin,int sckPin,int mosiPin,int misoPin, const char *fil
     _misoPin=misoPin;
     LOG_FILE_NAME=fileName;
     BACKUP_LOG_FILE_NAME=blFileName;
+    sync=true;
 }
 
 SDLogger::~SDLogger()
@@ -55,7 +56,7 @@ bool SDLogger::begin()
     }
     Serial.println("SD card initialized successfully.");
 
-    //if file is new add the header
+    //if file is new add the header-data
     if(!SD.exists(LOG_FILE_NAME)){
         File file=SD.open(LOG_FILE_NAME,FILE_WRITE);
         if(!file){
@@ -68,7 +69,7 @@ bool SDLogger::begin()
         file.close();
     }
 
-    //if file is new add the header
+    //if file is new add the header-backup
     if(!SD.exists(BACKUP_LOG_FILE_NAME)){
         File file=SD.open(BACKUP_LOG_FILE_NAME,FILE_WRITE);
         if(!file){
@@ -77,9 +78,60 @@ bool SDLogger::begin()
             Serial.println(".");
             return false;
         }
-        file.println("DATE(YYYY-MM-DD);TIME(HH:MM);WEIGHT(g)");
         file.close();
     }
 
     return true;
+}
+
+void SDLogger::syncBackupWithFirebase(FirebaseLogger &firebase)
+{
+    File file=SD.open(BACKUP_LOG_FILE_NAME,FILE_READ);
+    if(!file){
+        Serial.print("ERROR: Cannot open file ");
+        Serial.print(BACKUP_LOG_FILE_NAME);
+        Serial.println(".");
+        sync=false;
+        return;
+    }
+
+    while(file.available()){
+        String line=file.readStringUntil('\n');
+        line.trim(); //Clear the file from whitespace
+
+        if(line.length()>0){
+            int firstSemi=line.indexOf(';'); //searching from begining
+            int lastSemi=line.lastIndexOf(';'); //and from end (two of ; in the file)
+
+            if(firstSemi!=-1&&lastSemi!=-1&&firstSemi!=lastSemi){
+                String date=line.substring(0,firstSemi);
+                String time=line.substring(firstSemi+1,lastSemi);
+                String weight=line.substring(lastSemi+1);
+
+                if(firebase.logMeal(date,time,weight)){
+                    Serial.println("Sync success.");
+                    sync=true;
+                }else{
+                    Serial.println("Sync failed.");
+                    file.close();
+                    sync=false;
+                    return;
+                }
+            }
+        }
+    }
+    file.close();
+
+    if(sync){
+        File clearFile=SD.open(BACKUP_LOG_FILE_NAME,FILE_WRITE);
+        if(clearFile){
+            clearFile.close();
+            Serial.println("Backup file cleared.");
+        }
+    }
+}
+
+bool SDLogger::getSync()
+{
+    return sync;
 }
