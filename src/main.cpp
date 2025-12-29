@@ -16,7 +16,7 @@ const char*PASSWORD=SECRET_PASSWORD;
 const char*FB_URL=FBASE_URL;
 const char*FB_SECRET=FBASE_SECRET;
 
-//pin declarations and new objects
+//pin declarations
 //hx711
 #define LOADCELL_DOUT_PIN 26
 #define LOADCELL_SCK_PIN 27
@@ -46,14 +46,16 @@ Display display(OLED_SDA,OLED_SCL,SCREEN_WIDTH,SCREEN_HEIGHT,OLED_RESET,SCREEN_A
 Button button(BUTTON_PIN);
 Diode diode(LED_PIN);
 const char* LOG_FILE_NAME = "/data_log.txt";
-SDLogger sd(SD_CS,SD_SCK,SD_MOSI,SD_MISO,LOG_FILE_NAME);
+const char* BACKUP_LOG_FILE_NAME = "/backup_log.txt";
+SDLogger sd(SD_CS,SD_SCK,SD_MOSI,SD_MISO,LOG_FILE_NAME,BACKUP_LOG_FILE_NAME);
 RTCManager rtc;
 FirebaseLogger firebase(FB_URL,FB_SECRET);
 
-//test
+//variables and flags
 bool hold;
 bool tared;
 bool isRunning;
+bool dataSentToFirebase;
 unsigned long pressStartMonitoringTime;
 unsigned long toGetWeightTime;
 
@@ -66,7 +68,7 @@ void setup() {
   //sd card
   int i=0;
   while(!sd.begin()){
-    if(i>5) //casually after one iteration, the card is initialized correctly
+    if(i>5)
       display.displayMsg("SD card error.");
     i++;
   }
@@ -76,27 +78,37 @@ void setup() {
   scale.begin();
 
   //connect with wifi -> at start it is a must have
+  WiFi.persistent(false); //Dont't store WiFi confing in flash
+  WiFi.mode(WIFI_STA); //Set to station mode
+  WiFi.disconnect(); //Disconnect from  Access Point if it was previously connected
+  delay(100);
   WiFi.begin(SSID,PASSWORD);
+
+  unsigned long startAttemptTime=millis();
   while(WiFi.status()!=WL_CONNECTED){
-    delay(500);
     Serial.print(".");
+    delay(1000);
+    if(millis()-startAttemptTime>10000){ //Reconnection
+      Serial.println("Failed to connect. Restart.");
+      WiFi.disconnect();
+      delay(100);
+      WiFi.begin(SSID,PASSWORD);
+      startAttemptTime=millis();
+    }
   }
   Serial.print("Connected with Wi-Fi. IP: ");
-  Serial.println(WiFi.localIP()); //to save! maybe just for now
+  Serial.println(WiFi.localIP()); //NOT USED: needed for web server 
 
-  //rtc configureg only when having wi-fi access
+  //rtc configured right only when having wi-fi access
   rtc.config();
 
-  //fb
+  //firebase
   firebase.begin();
-
-  //WiFi.disconnect();
-  //start the server
-  webServer.begin();
 
   hold=false;
   tared=false;
   isRunning=false;
+  dataSentToFirebase=true;
   pressStartMonitoringTime=0;
   toGetWeightTime=3000;
 }
@@ -145,11 +157,14 @@ void loop() {
         //sd log
         sd.log(currentDate,currentTime,weight);
         //firebase
-        firebase.logMeal(currentDate,currentTime,weight);
+        if(!firebase.logMeal(currentDate,currentTime,weight)){
+          dataSentToFirebase=false;
+          sd.backupLog(currentDate,currentTime,weight);
+        }
         
         scale.setStartWeight();
       }
-      if(measuredWeight==0) //if the bowl is empty, the program stops running and is waiting for another bowl fill and start of the program
+      if(measuredWeight<=2) //if the bowl is empty, the program stops running and is waiting for another bowl fill and start of the program
         isRunning=false;
     }
   }
