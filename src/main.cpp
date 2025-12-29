@@ -52,12 +52,14 @@ RTCManager rtc;
 FirebaseLogger firebase(FB_URL,FB_SECRET);
 
 //variables and flags
+int lastDayTimeSync;
 bool hold;
 bool tared;
 bool isRunning;
 bool dataSentToFirebase;
 unsigned long pressStartMonitoringTime;
 unsigned long toGetWeightTime;
+unsigned long lastWiFiConnectionAttempt;
 
 void setup() {
   Serial.begin(115200);
@@ -105,12 +107,14 @@ void setup() {
   //firebase
   firebase.begin();
 
+  lastDayTimeSync=-1;
   hold=false;
   tared=false;
   isRunning=false;
-  dataSentToFirebase=true;
+  dataSentToFirebase=false; //in case of device reset, it will check the file
   pressStartMonitoringTime=0;
   toGetWeightTime=3000;
+  lastWiFiConnectionAttempt=0;
 }
 
 void loop() {
@@ -167,6 +171,32 @@ void loop() {
       if(measuredWeight<=2) //if the bowl is empty, the program stops running and is waiting for another bowl fill and start of the program
         isRunning=false;
     }
+  }
+
+  //chceck if the data are synchronized with firebase
+  if(!dataSentToFirebase && WiFi.status()==WL_CONNECTED){
+    sd.syncBackupWithFirebase(firebase);
+    if(sd.getSync())
+      dataSentToFirebase=true;
+  }
+
+  //check if the device has WiFi connection
+  if(WiFi.status()!=WL_CONNECTED){
+    Serial.print("WiFi connection lost. Trying to reconnect.");
+    if(millis()-lastWiFiConnectionAttempt>10000){ //Reconnection
+      Serial.println("Failed to connect. Restart.");
+      WiFi.disconnect();
+      delay(100);
+      WiFi.begin(SSID,PASSWORD);
+      lastWiFiConnectionAttempt=millis();
+    }
+  }
+
+  //daily time sync at 3AM
+  if(rtc.getHour()==3 && rtc.getDay()!=lastDayTimeSync && WiFi.status()==WL_CONNECTED){
+    Serial.println("Routine NTP sync.");
+    rtc.config();
+    lastDayTimeSync=rtc.getDay();
   }
   
   delay(5);

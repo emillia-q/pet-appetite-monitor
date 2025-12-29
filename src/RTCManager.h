@@ -11,13 +11,13 @@ class RTCManager{
 
     int getYear();
     int getMonth();
-    int getDay();
-    int getHour();
     int getMinute();
 public:
     RTCManager();
     ~RTCManager();
 
+    int getHour(); //not private, it is needed to sync time in loop
+    int getDay(); 
     void config();
     String getDate();
     String getTime();
