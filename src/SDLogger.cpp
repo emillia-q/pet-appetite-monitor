@@ -2,10 +2,10 @@
 
 void SDLogger::log(const String &date,const String &time,const String &weight)
 {
-    File file=SD.open(FILE_NAME,FILE_APPEND);
+    File file=SD.open(LOG_FILE_NAME,FILE_APPEND);
     if(!file){
         Serial.print("ERROR: Cannot open file ");
-        Serial.print(FILE_NAME);
+        Serial.print(LOG_FILE_NAME);
         Serial.println(".");
         return;
     }
@@ -15,13 +15,29 @@ void SDLogger::log(const String &date,const String &time,const String &weight)
     Serial.println("log success");
 }
 
-SDLogger::SDLogger(int csPin,int sckPin,int mosiPin,int misoPin, const char *fileName)
+void SDLogger::backupLog(const String &date, const String &time, const String &weight)
+{
+    File file=SD.open(BACKUP_LOG_FILE_NAME,FILE_APPEND);
+    if(!file){
+        Serial.print("ERROR: Cannot open file ");
+        Serial.print(BACKUP_LOG_FILE_NAME);
+        Serial.println(".");
+        return;
+    }
+    file.println(date+";"+time+";"+weight);
+    file.close();
+    
+    Serial.println("backup log success");
+}
+
+SDLogger::SDLogger(int csPin,int sckPin,int mosiPin,int misoPin, const char *fileName,const char*blFileName)
 {
     _csPin=csPin;
     _sckPin=sckPin;
     _mosiPin=mosiPin;
     _misoPin=misoPin;
-    FILE_NAME=fileName;
+    LOG_FILE_NAME=fileName;
+    BACKUP_LOG_FILE_NAME=blFileName;
 }
 
 SDLogger::~SDLogger()
@@ -40,11 +56,24 @@ bool SDLogger::begin()
     Serial.println("SD card initialized successfully.");
 
     //if file is new add the header
-    if(!SD.exists(FILE_NAME)){
-        File file=SD.open(FILE_NAME,FILE_READ);
+    if(!SD.exists(LOG_FILE_NAME)){
+        File file=SD.open(LOG_FILE_NAME,FILE_WRITE);
         if(!file){
             Serial.print("ERROR: Cannot open file ");
-            Serial.print(FILE_NAME);
+            Serial.print(LOG_FILE_NAME);
+            Serial.println(".");
+            return false;
+        }
+        file.println("DATE(YYYY-MM-DD);TIME(HH:MM);WEIGHT(g)");
+        file.close();
+    }
+
+    //if file is new add the header
+    if(!SD.exists(BACKUP_LOG_FILE_NAME)){
+        File file=SD.open(BACKUP_LOG_FILE_NAME,FILE_WRITE);
+        if(!file){
+            Serial.print("ERROR: Cannot open file ");
+            Serial.print(BACKUP_LOG_FILE_NAME);
             Serial.println(".");
             return false;
         }
