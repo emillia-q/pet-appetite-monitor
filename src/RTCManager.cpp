@@ -39,8 +39,19 @@ RTCManager::~RTCManager()
 void RTCManager::config()
 {
     configTime(gmtOffset_sec,daylightOffset_sec,ntpServer);
-    if(!getLocalTime(&timeinfo))
+
+    int retry=0;
+    const int maxRetries=10;
+    while(!getLocalTime(&timeinfo)&&retry<maxRetries){
+        Serial.println("Waiting for NTP time sync.");
+        delay(500);
+        retry++;
+    }
+
+    if(retry==maxRetries)
         Serial.println("Failed to obtain time.");
+    else
+        Serial.println("Time synchronized.");
 }
 
 String RTCManager::getDate()
