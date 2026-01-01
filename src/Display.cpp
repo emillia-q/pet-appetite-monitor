@@ -56,3 +56,8 @@ void Display::displayClr()
     display.clearDisplay();
     display.display();
 }
+
+void Display::displayOff()
+{
+    display.ssd1306_command(0xAE);
+}

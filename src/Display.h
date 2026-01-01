@@ -15,6 +15,7 @@ public:
     void displayWeight(long weight);
     void displayMsg(String msg);
     void displayClr();
+    void displayOff();
 private:
     Adafruit_SSD1306 display;
     unsigned long lastOled;
