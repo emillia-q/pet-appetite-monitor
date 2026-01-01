@@ -57,9 +57,18 @@ bool hold;
 bool tared;
 bool isRunning;
 bool dataSentToFirebase;
+bool isConnecting;
 unsigned long pressStartMonitoringTime;
 unsigned long toGetWeightTime;
+unsigned long toConnectWithWiFiTime;
 unsigned long lastWiFiConnectionAttempt;
+
+//functions declarations
+void reconnectWithWiFi();
+void dataLog(long weightDrop);
+void firebaseSyncCheck();
+void dailyRTCSync();
+void goToDeepSleep();
 
 void setup() {
   Serial.begin(115200);
@@ -107,13 +116,19 @@ void setup() {
   //firebase
   firebase.begin();
 
+  //disconnect with WiFi to reduce power consumption
+  WiFi.disconnect();
+  WiFi.mode(WIFI_OFF);
+
   lastDayTimeSync=-1;
   hold=false;
   tared=false;
   isRunning=false;
   dataSentToFirebase=false; //in case of device reset, it will check the file
+  isConnecting=false;
   pressStartMonitoringTime=0;
-  toGetWeightTime=3000;
+  toGetWeightTime=3000; //3s
+  toConnectWithWiFiTime=30000; //30s
   lastWiFiConnectionAttempt=0;
 }
 
@@ -145,59 +160,107 @@ void loop() {
     button.changeLastState(); 
   }
 
-  //get weight 3s before SD log so it will stabilize
-  if(isRunning && millis()-pressStartMonitoringTime+toGetWeightTime>=Scale::MEASURE_TIME){
-    long measuredWeight=scale.getStableWeight();  
-    Serial.println(measuredWeight);
-    if(millis()-pressStartMonitoringTime>=Scale::MEASURE_TIME){ //if the time has passed, we check if the weight drop occured
-      pressStartMonitoringTime=millis(); //to start measuring time to the next log
-      scale.checkWeightDrop();
-      Serial.println("the time has passed");
-      if(scale.getDidDrop()){ //if the weight had dropped, we log the data
-        scale.setDidDrop(false);
-        String weight=String(scale.getWeightDrop());
-        String currentDate=rtc.getDate();
-        String currentTime=rtc.getTime();
-        //sd log
-        sd.log(currentDate,currentTime,weight);
-        //firebase
-        if(!firebase.logMeal(currentDate,currentTime,weight)){
-          dataSentToFirebase=false;
-          sd.backupLog(currentDate,currentTime,weight);
-        }
+  if(isRunning && millis()-pressStartMonitoringTime+toConnectWithWiFiTime>=Scale::MEASURE_TIME){
+    reconnectWithWiFi();
+    //get weight 3s before SD log so it will stabilize
+    if(isRunning && millis()-pressStartMonitoringTime+toGetWeightTime>=Scale::MEASURE_TIME){
+      long measuredWeight=scale.getStableWeight();  
+      Serial.println(measuredWeight);
+      if(millis()-pressStartMonitoringTime>=Scale::MEASURE_TIME){ //if the time has passed, we check if the weight drop occured
+        pressStartMonitoringTime=millis(); //to start measuring time to the next log
+        Serial.println("the time has passed");
+        scale.checkWeightDrop();
         
-        scale.setStartWeight();
+        if(scale.getDidDrop()){ //if the weight had dropped, we log the data
+          scale.setDidDrop(false);
+          dataLog(scale.getWeightDrop());
+          firebaseSyncCheck(); //chceck if the data are synchronized with firebase, always checks it for the first time after running a program
+          scale.setStartWeight();
+        }
+        WiFi.disconnect();
+        WiFi.mode(WIFI_OFF);
+        if(measuredWeight<=2){ //if the bowl is empty, the program stops running and is waiting for another bowl fill and start of the program
+          isRunning=false;
+          goToDeepSleep();
+        }
       }
-      if(measuredWeight<=2) //if the bowl is empty, the program stops running and is waiting for another bowl fill and start of the program
-        isRunning=false;
     }
   }
 
-  //chceck if the data are synchronized with firebase
+  //daily time sync at 3AM
+  dailyRTCSync();
+  
+  delay(5);
+}
+
+void reconnectWithWiFi()
+{
+  //check if the device has WiFi connection
+  if(WiFi.status()==WL_CONNECTED){
+    isConnecting=false;
+    return;
+  }
+ 
+  if(!isConnecting || (millis()-lastWiFiConnectionAttempt>10000)){ //Reconnection
+    Serial.println("Failed to connect. Restart.");
+    WiFi.mode(WIFI_STA);
+    WiFi.disconnect();
+    delay(100);
+    WiFi.begin(SSID,PASSWORD);
+    lastWiFiConnectionAttempt=millis();
+    isConnecting=true;
+  }
+  
+}
+
+void dataLog(long weightDrop)
+{
+  String weight=String(weightDrop);
+  String currentDate=rtc.getDate();
+  String currentTime=rtc.getTime();
+  //sd log
+  sd.log(currentDate,currentTime,weight);
+  //firebase
+  if(!firebase.logMeal(currentDate,currentTime,weight)){
+    dataSentToFirebase=false;
+    sd.backupLog(currentDate,currentTime,weight);
+  }
+}
+
+void firebaseSyncCheck()
+{
   if(!dataSentToFirebase && WiFi.status()==WL_CONNECTED){
     sd.syncBackupWithFirebase(firebase);
     if(sd.getSync())
       dataSentToFirebase=true;
   }
+}
 
-  //check if the device has WiFi connection
-  if(WiFi.status()!=WL_CONNECTED){
-    Serial.print("WiFi connection lost. Trying to reconnect.");
-    if(millis()-lastWiFiConnectionAttempt>10000){ //Reconnection
-      Serial.println("Failed to connect. Restart.");
-      WiFi.disconnect();
-      delay(100);
-      WiFi.begin(SSID,PASSWORD);
-      lastWiFiConnectionAttempt=millis();
-    }
-  }
-
-  //daily time sync at 3AM
+void dailyRTCSync()
+{
   if(rtc.getHour()==3 && rtc.getDay()!=lastDayTimeSync && WiFi.status()==WL_CONNECTED){
     Serial.println("Routine NTP sync.");
     rtc.config();
     lastDayTimeSync=rtc.getDay();
   }
-  
-  delay(5);
+}
+
+void goToDeepSleep()
+{
+  Serial.println("Preparing for deep sleep.");
+  //display
+  display.displayOff();
+
+  //hx711
+  digitalWrite(LOADCELL_SCK_PIN,HIGH);
+
+  //WiFi
+  WiFi.disconnect();
+  WiFi.mode(WIFI_OFF);
+
+  //wakeup pin configuration
+  esp_sleep_enable_ext0_wakeup(GPIO_NUM_14,0); 
+
+  //sleep
+  esp_deep_sleep_start();
 }
