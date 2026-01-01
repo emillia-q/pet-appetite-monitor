@@ -52,16 +52,22 @@ RTCManager rtc;
 FirebaseLogger firebase(FB_URL,FB_SECRET);
 
 //variables and flags
-int lastDayTimeSync;
-bool hold;
-bool tared;
+bool isButtonHeld;
+bool isTared;
 bool isRunning;
-bool dataSentToFirebase;
-bool isConnecting;
-unsigned long pressStartMonitoringTime;
-unsigned long toGetWeightTime;
-unsigned long toConnectWithWiFiTime;
+bool isSyncWithFirebase;
+bool isWiFiConnecting;
+int lastDayTimeSync;
+unsigned long monitoringStartTime;
 unsigned long lastWiFiConnectionAttempt;
+unsigned long lastActivity;
+
+//constants
+const int WEIGHT_MARGIN=2; //2g
+const unsigned long WEIGHT_STABILIZE=3000; //3s
+const unsigned long WIFI_PRE_CONNECT=30000; //30s
+const unsigned long WIFI_RETRY_INTERVAL=10000; //10s
+const unsigned long INACTIVITY_SLEEP_TIMEOUT=300000; //5min
 
 //functions declarations
 void reconnectWithWiFi();
@@ -99,7 +105,7 @@ void setup() {
   while(WiFi.status()!=WL_CONNECTED){
     Serial.print(".");
     delay(1000);
-    if(millis()-startAttemptTime>10000){ //Reconnection
+    if(millis()-startAttemptTime>WIFI_RETRY_INTERVAL){ //Reconnection
       Serial.println("Failed to connect. Restart.");
       WiFi.disconnect();
       delay(100);
@@ -120,16 +126,15 @@ void setup() {
   WiFi.disconnect();
   WiFi.mode(WIFI_OFF);
 
-  lastDayTimeSync=-1;
-  hold=false;
-  tared=false;
+  isButtonHeld=false;
+  isTared=false;
   isRunning=false;
-  dataSentToFirebase=false; //in case of device reset, it will check the file
-  isConnecting=false;
-  pressStartMonitoringTime=0;
-  toGetWeightTime=3000; //3s
-  toConnectWithWiFiTime=30000; //30s
+  isSyncWithFirebase=false; //in case of device reset, it will check the file
+  isWiFiConnecting=false;
+  lastDayTimeSync=-1;
+  monitoringStartTime=0;
   lastWiFiConnectionAttempt=0;
+  lastActivity=millis();
 }
 
 void loop() {
@@ -143,31 +148,32 @@ void loop() {
     button.buttonStateRead();
     button.measurePressTime();
     
-    if(button.buttonHold()){
+    if(button.buttonHold() && weightToDisplay>WEIGHT_MARGIN){
       diode.startMonitoringMsg();
       scale.setStartWeight();
       isRunning=true;
-      pressStartMonitoringTime=millis();
+      monitoringStartTime=millis();
       display.displayClr();
     }
 
     if(button.buttonClick()){ //so we or pet won't accidentally click tare when the food is ready to be monitored
       diode.tareMsg();
       scale.tare();
-      //tared=true;
+      lastActivity=millis();
+      //isTared=true;
     }
 
     button.changeLastState(); 
   }
 
-  if(isRunning && millis()-pressStartMonitoringTime+toConnectWithWiFiTime>=Scale::MEASURE_TIME){
+  if(isRunning && millis()-monitoringStartTime+WIFI_PRE_CONNECT>=Scale::MEASURE_TIME){
     reconnectWithWiFi();
     //get weight 3s before SD log so it will stabilize
-    if(isRunning && millis()-pressStartMonitoringTime+toGetWeightTime>=Scale::MEASURE_TIME){
+    if(isRunning && millis()-monitoringStartTime+WEIGHT_STABILIZE>=Scale::MEASURE_TIME){
       long measuredWeight=scale.getStableWeight();  
       Serial.println(measuredWeight);
-      if(millis()-pressStartMonitoringTime>=Scale::MEASURE_TIME){ //if the time has passed, we check if the weight drop occured
-        pressStartMonitoringTime=millis(); //to start measuring time to the next log
+      if(millis()-monitoringStartTime>=Scale::MEASURE_TIME){ //if the time has passed, we check if the weight drop occured
+        monitoringStartTime=millis(); //to start measuring time to the next log
         Serial.println("the time has passed");
         scale.checkWeightDrop();
         
@@ -179,7 +185,7 @@ void loop() {
         }
         WiFi.disconnect();
         WiFi.mode(WIFI_OFF);
-        if(measuredWeight<=2){ //if the bowl is empty, the program stops running and is waiting for another bowl fill and start of the program
+        if(measuredWeight<=WEIGHT_MARGIN){ //if the bowl is empty, the program stops running and is waiting for another bowl fill and start of the program
           isRunning=false;
           goToDeepSleep();
         }
@@ -189,6 +195,10 @@ void loop() {
 
   //daily time sync at 3AM
   dailyRTCSync();
+
+  //deep sleep when there is no activity for 5 minutes
+  if(!isRunning && millis()-lastActivity>=INACTIVITY_SLEEP_TIMEOUT)
+    goToDeepSleep();
   
   delay(5);
 }
@@ -197,18 +207,18 @@ void reconnectWithWiFi()
 {
   //check if the device has WiFi connection
   if(WiFi.status()==WL_CONNECTED){
-    isConnecting=false;
+    isWiFiConnecting=false;
     return;
   }
  
-  if(!isConnecting || (millis()-lastWiFiConnectionAttempt>10000)){ //Reconnection
+  if(!isWiFiConnecting || (millis()-lastWiFiConnectionAttempt>WIFI_RETRY_INTERVAL)){ //Reconnection
     Serial.println("Failed to connect. Restart.");
     WiFi.mode(WIFI_STA);
     WiFi.disconnect();
     delay(100);
     WiFi.begin(SSID,PASSWORD);
     lastWiFiConnectionAttempt=millis();
-    isConnecting=true;
+    isWiFiConnecting=true;
   }
   
 }
@@ -222,17 +232,17 @@ void dataLog(long weightDrop)
   sd.log(currentDate,currentTime,weight);
   //firebase
   if(!firebase.logMeal(currentDate,currentTime,weight)){
-    dataSentToFirebase=false;
+    isSyncWithFirebase=false;
     sd.backupLog(currentDate,currentTime,weight);
   }
 }
 
 void firebaseSyncCheck()
 {
-  if(!dataSentToFirebase && WiFi.status()==WL_CONNECTED){
+  if(!isSyncWithFirebase && WiFi.status()==WL_CONNECTED){
     sd.syncBackupWithFirebase(firebase);
     if(sd.getSync())
-      dataSentToFirebase=true;
+      isSyncWithFirebase=true;
   }
 }
 
