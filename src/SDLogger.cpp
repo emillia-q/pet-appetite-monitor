@@ -95,6 +95,7 @@ void SDLogger::syncBackupWithFirebase(FirebaseLogger &firebase)
         return;
     }
 
+    bool hasData=false;
     while(file.available()){
         String line=file.readStringUntil('\n');
         line.trim(); //Clear the file from whitespace
@@ -104,6 +105,7 @@ void SDLogger::syncBackupWithFirebase(FirebaseLogger &firebase)
             int lastSemi=line.lastIndexOf(';'); //and from end (two of ; in the file)
 
             if(firstSemi!=-1&&lastSemi!=-1&&firstSemi!=lastSemi){
+                hasData=true;
                 String date=line.substring(0,firstSemi);
                 String time=line.substring(firstSemi+1,lastSemi);
                 String weight=line.substring(lastSemi+1);
@@ -122,7 +124,7 @@ void SDLogger::syncBackupWithFirebase(FirebaseLogger &firebase)
     }
     file.close();
 
-    if(sync){
+    if(sync && hasData){
         File clearFile=SD.open(BACKUP_LOG_FILE_NAME,FILE_WRITE);
         if(clearFile){
             clearFile.close();

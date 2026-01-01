@@ -8,7 +8,7 @@ public:
     static constexpr float DISPLAY_STEP = 1.0f; //rounding step to units
     static constexpr float DISPLAY_HYST = 0.5f; //prevents flashing between two adjacent numbers
     static constexpr int MED_N = 5;
-    static constexpr int  MEASURE_TIME=20000; //value to test
+    static constexpr int  MEASURE_TIME=60000; //60s
 
     //constructors & destructors
     Scale(int doutPin, int sckPin);
