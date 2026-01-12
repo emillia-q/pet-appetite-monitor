@@ -156,7 +156,7 @@ void loop() {
       display.displayClr();
     }
 
-    if(button.buttonClick()){ //so we or pet won't accidentally click tare when the food is ready to be monitored
+    if(button.buttonClick()){
       diode.tareMsg();
       scale.tare();
       lastActivity=millis();
