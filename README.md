@@ -57,6 +57,11 @@ The project is built on **ESP32-WROOM** platform and developed using PlatformIO.
 
 ---
 
+## 🪚 Build Process
+If you are interested how the build process went and what the project looks like "under the hood", you can check out the [Behind the Scenes](./assets/behind-the-scenes) folder.
+
+---
+
 ## 👩‍💻 Author
 **Emilia Kura**
    
