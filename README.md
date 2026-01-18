@@ -17,9 +17,15 @@ WiFi access is required for a successful startup to synchronize the internal clo
 
 ---
 
-## 📐 Architecture
-//TODO: add Fusion diagrams
-The project is built on **ESP32-WROOM** platform and developed using PlatformIO. The hardware components include:
+## 📐 Architecture & Hardware
+The project is built on **ESP32-WROOM** platform and developed using PlatformIO.
+### Schematic Preview
+| Schematic | PCB |
+| :---: | :---: |
+| ![Schematic](assets/schematic_preview.png) | ![Schematic](assets/schematic_preview.png) |
+| [📄 View full PDF](./hardware/schematics/Schematic.pdf) | [📄 View full PDF](./hardware/schematics/Schematic.pdf) |
+
+### Components Used
 * **HX711 & Load Cell:** Measures weight and converts the analog signal to digital data.
 * **OLED 0.91' Display:** Shows the current weight and system status (e.g. SD card errors) via the **I2C communication protocol**.
 * **MicroSD Breakout & MicroSD card:** Used for data logging via the SPI interface. The system manages two specific files:
