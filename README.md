@@ -12,7 +12,7 @@ This need became an inspiration for this project and unfortunately the only way 
 <br clear="left"/>
 
 ## 🛠️ How it works
-The primary purpose is to monitor and record the time and quantity of a pet's meals, providing data to help manage their condition. The data is stored locally on a MicroSD card and also sent to **Firebase**, from where it is retrieved by a mobile app (currently in development). 
+The primary purpose is to monitor and record the time and quantity of a pet's meals, providing data to help manage their condition. The data is stored locally on a MicroSD card and also sent to **Firebase**, from where it is retrieved by a mobile app [Bon TrackPETite](https://github.com/emillia-q/bon-trackpetite.git). 
 WiFi access is required for a successful startup to synchronize the internal clock with an NTP server. After configuration, when the display starts showing the weight, the user can place a bowl on the scale. After taring the scale and filling the bowl, the monitoring program can be initiated. **Every ten minutes**, the scale checks if the weight has dropped and if a decrease is detected the data is automatically saved. 
 
 ---
@@ -54,6 +54,11 @@ The project is built on **ESP32-WROOM** platform and developed using PlatformIO.
   The program automatically stops the monitoring cycle when it detects that the bowl is empty (weight <= 2g), saving system resources. Also, if the bowl is empty, the device **ignores the start button** to prevent accidental monitoring of an empty bowl. This ensures the user **correctly fills the bowl** before starting a cycle, avoiding unnecessary resets or wait times.
 * **Deep Sleep:**
   To lower power consumption, the device enters deep sleep mode when the bowl is considered empty after a meal or after 5 minutes of no activity (when the scale is in standby mode after powering on the device).
+
+---
+
+## 🪚 Build Process
+If you are interested how the build process went and what the project looks like "under the hood", you can check out the [Behind the Scenes](./assets/behind-the-scenes) folder.
 
 ---
 
