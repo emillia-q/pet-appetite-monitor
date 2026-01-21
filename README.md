@@ -20,7 +20,7 @@ WiFi access is required for a successful startup to synchronize the internal clo
 ## 📐 Architecture & Hardware
 The project is built on **ESP32-WROOM** platform and developed using PlatformIO.
 ### Schematic Preview
-| Schematic | PCB |
+| Schematic | PCB (Top, Bottom & GND) |
 | :---: | :---: |
 | ![Schematic](assets/schematic_preview.png) | ![PCB](assets/pcb_preview.png) |
 | [📄 View full PDF](./hardware/schematics/Schematic.pdf) | [📄 View full PDF](./hardware/schematics/PCB.pdf) |
