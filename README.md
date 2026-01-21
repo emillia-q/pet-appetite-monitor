@@ -53,7 +53,7 @@ The project is built on **ESP32-WROOM** platform and developed using PlatformIO.
 * **Empty Bowl Detection:**
   The program automatically stops the monitoring cycle when it detects that the bowl is empty (weight <= 2g), saving system resources. Also, if the bowl is empty, the device **ignores the start button** to prevent accidental monitoring of an empty bowl. This ensures the user **correctly fills the bowl** before starting a cycle, avoiding unnecessary resets or wait times.
 * **Deep Sleep:**
-  To lower power consumption, the device enters deep sleep mode when the bowl is considered empty after a meal or after 5 minutes of no activity (when the scale is in standby mode after powering on the device).
+  To lower power consumption, the device enters deep sleep mode when the bowl is considered empty after a meal or after 2 minutes of no activity (when the scale is in standby mode after powering on the device).
 
 ---
 
