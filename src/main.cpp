@@ -67,7 +67,7 @@ const int WEIGHT_MARGIN=2; //2g
 const unsigned long WEIGHT_STABILIZE=3000; //3s
 const unsigned long WIFI_PRE_CONNECT=30000; //30s
 const unsigned long WIFI_RETRY_INTERVAL=10000; //10s
-const unsigned long INACTIVITY_SLEEP_TIMEOUT=300000; //5min
+const unsigned long INACTIVITY_SLEEP_TIMEOUT=30000; //2min=120000 (changed for presentation)
 
 //functions declarations
 void reconnectWithWiFi();
@@ -101,6 +101,7 @@ void setup() {
   delay(100);
   WiFi.begin(SSID,PASSWORD);
 
+  display.displayMsg("Connecting with Wi-Fi...");
   unsigned long startAttemptTime=millis();
   while(WiFi.status()!=WL_CONNECTED){
     Serial.print(".");
@@ -113,6 +114,7 @@ void setup() {
       startAttemptTime=millis();
     }
   }
+  display.displayClr();
   Serial.print("Connected with Wi-Fi. IP: ");
   Serial.println(WiFi.localIP()); //NOT USED: needed for web server 
 
@@ -212,13 +214,13 @@ void reconnectWithWiFi()
   }
  
   if(!isWiFiConnecting || (millis()-lastWiFiConnectionAttempt>WIFI_RETRY_INTERVAL)){ //Reconnection
-    Serial.println("Failed to connect. Restart.");
     WiFi.mode(WIFI_STA);
     WiFi.disconnect();
     delay(100);
     WiFi.begin(SSID,PASSWORD);
     lastWiFiConnectionAttempt=millis();
     isWiFiConnecting=true;
+    Serial.println("Failed to connect. Restart.");
   }
   
 }
