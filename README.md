@@ -22,8 +22,8 @@ The project is built on **ESP32-WROOM** platform and developed using PlatformIO.
 ### Schematic Preview
 | Schematic | PCB |
 | :---: | :---: |
-| ![Schematic](assets/schematic_preview.png) | ![Schematic](assets/schematic_preview.png) |
-| [📄 View full PDF](./hardware/schematics/Schematic.pdf) | [📄 View full PDF](./hardware/schematics/Schematic.pdf) |
+| ![Schematic](assets/schematic_preview.png) | ![PCB](assets/pcb_preview.png) |
+| [📄 View full PDF](./hardware/schematics/Schematic.pdf) | [📄 View full PDF](./hardware/schematics/PCB.pdf) |
 
 ### Components Used
 * **HX711 & Load Cell:** Measures weight and converts the analog signal to digital data.
