@@ -13,7 +13,10 @@ This need became an inspiration for this project and unfortunately the only way 
 
 ## 🛠️ How it works
 The primary purpose is to monitor and record the time and quantity of a pet's meals, providing data to help manage their condition. The data is stored locally on a MicroSD card and also sent to **Firebase**, from where it is retrieved by a mobile app [Bon TrackPETite](https://github.com/emillia-q/bon-trackpetite.git). 
-WiFi access is required for a successful startup to synchronize the internal clock with an NTP server. After configuration, when the display starts showing the weight, the user can place a bowl on the scale. After taring the scale and filling the bowl, the monitoring program can be initiated. **Every ten minutes**, the scale checks if the weight has dropped and if a decrease is detected the data is automatically saved. 
+WiFi access is required for a successful startup to synchronize the internal clock with an NTP server. After configuration, when the display starts showing the weight, the user can place a bowl on the scale. After taring the scale and filling the bowl, the monitoring program can be initiated. **Every ten minutes**, the scale checks if the weight has dropped and if a decrease is detected the data is automatically saved.
+
+## 📺 Video Preview
+![Project preview](assets/project_preview.gif)
 
 ---
 
